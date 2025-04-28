@@ -1,4 +1,5 @@
-import java.io.*;
+package m323.tbz.ch;
+
 import java.util.*;
 
 public class HighScoreApp {
@@ -18,9 +19,13 @@ public class HighScoreApp {
                 String name = scanner.nextLine();
                 System.out.print("Level (Einfach, Mittel, Schwer, Genie): ");
                 String level = scanner.nextLine();
-                System.out.print("Zeit in Sekunden: ");
-                int time = Integer.parseInt(scanner.nextLine());
-                System.out.println(admin.addScore(name, level, time));
+                try {
+                    System.out.print("Zeit in Sekunden: ");
+                    int time = Integer.parseInt(scanner.nextLine());
+                    System.out.println(admin.addScore(name, level, time));
+                } catch (NumberFormatException e) {
+                    System.out.println("Ungültige Eingabe! Bitte eine Zahl eingeben.");
+                }
             } else if (choice.equals("2")) {
                 System.out.print("Welches Level anzeigen? (Einfach, Mittel, Schwer, Genie): ");
                 String level = scanner.nextLine();

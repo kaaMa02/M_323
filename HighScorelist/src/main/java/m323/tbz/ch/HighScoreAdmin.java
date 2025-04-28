@@ -1,6 +1,12 @@
+package m323.tbz.ch;
+
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
+/**
+ * Verwaltet Highscore-Einträge: Hinzufügen, Speichern und Laden.
+ */
 class HighScoreAdmin {
     private static final List<String> LEVELS = Arrays.asList("einfach", "mittel", "schwer", "genie");
     private static final int MAX_ENTRIES = 10;
@@ -14,6 +20,13 @@ class HighScoreAdmin {
         loadScores();
     }
 
+    /**
+     * Fügt einen neuen Highscore hinzu und gibt den Rang des Spielers zurück.
+     * @param name Name des Spielers
+     * @param level Schwierigkeitsgrad
+     * @param time Benötigte Zeit in Sekunden
+     * @return Rangnachricht oder Fehlermeldung
+     */
     public String addScore(String name, String level, int time) {
         level = level.toLowerCase();
         if (!scores.containsKey(level)) return "Invalid level!";
@@ -22,32 +35,51 @@ class HighScoreAdmin {
         HighScore newScore = new HighScore(name, date, level, time);
         List<HighScore> levelScores = scores.get(level);
         levelScores.add(newScore);
-        levelScores.sort(Comparator.comparingInt(s -> s.time));
 
-        if (levelScores.size() > MAX_ENTRIES) {
-            levelScores.remove(MAX_ENTRIES);
-        }
+        int rank = calculateRank(levelScores, newScore);
 
-        int rank = levelScores.indexOf(newScore) + 1;
-        return rank <= MAX_ENTRIES ? "Your rank: " + rank + "!" : "HighScore entries only better than " + levelScores.get(MAX_ENTRIES - 1).time + " seconds";
+        List<HighScore> sortedLevelScores = levelScores.stream()
+                .sorted(Comparator.comparingInt(s -> s.getTime()))
+                .limit(MAX_ENTRIES)
+                .toList();
+
+        return rank <= MAX_ENTRIES ? "Your rank: " + rank + "!" : "m323.tbz.ch.HighScore entries only better than " + sortedLevelScores.get(MAX_ENTRIES - 1).getTime() + " seconds";
+    }
+
+    private int calculateRank(List<HighScore> scores, HighScore newScore) {
+        List<HighScore> sorted = new ArrayList<>(scores);
+        sorted.add(newScore);
+        sorted.sort(Comparator.comparingInt(HighScore::getTime));
+        return sorted.indexOf(newScore) + 1;
     }
 
     public String getHighScores(String level) {
         level = level.toLowerCase();
         if (!scores.containsKey(level)) return "Invalid level!";
+
+        // Filter the scores first
+        List<HighScore> filteredScores = scores.get(level).stream()
+                .filter(score -> score.getTime() <= 300)
+                .collect(Collectors.toList());
+
         StringBuilder sb = new StringBuilder();
-        for (HighScore hs : scores.get(level)) {
-            sb.append(hs.toString()).append("\n");
-        }
+        printScoresRecursively(filteredScores, 0, sb);
         return sb.toString();
     }
+
+    private void printScoresRecursively(List<HighScore> scores, int index, StringBuilder sb) {
+        if (index >= scores.size()) return;
+        sb.append(scores.get(index).toString()).append("\n");
+        printScoresRecursively(scores, index + 1, sb);
+    }
+
 
     public void saveScores() {
         try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
             writer.println("Name,Date,Level,Time");
             for (String level : LEVELS) {
                 for (HighScore hs : scores.get(level)) {
-                    writer.println(hs.name + "," + hs.date + "," + hs.level + "," + hs.time);
+                    writer.println(hs.getName() + "," + hs.getDate() + "," + hs.getLevel() + "," + hs.getTime());
                 }
             }
         } catch (IOException e) {
@@ -66,7 +98,7 @@ class HighScoreAdmin {
                 }
             }
             for (String level : LEVELS) {
-                scores.get(level).sort(Comparator.comparingInt(s -> s.time));
+                scores.get(level).sort(Comparator.comparingInt(s -> s.getTime()));
                 if (scores.get(level).size() > MAX_ENTRIES) {
                     scores.get(level).subList(MAX_ENTRIES, scores.get(level).size()).clear();
                 }
