@@ -78,6 +78,14 @@ public class HighScoreAdmin {
         }
     }
 
+    public String addScore(String name, String level, int time) {
+        level = level.toLowerCase();
+        return switch (level) {
+            case "einfach", "mittel", "schwer", "genie" -> handleValidScore(name, level, time);
+            default -> "Invalid level!";
+        };
+    }
+
     /**
      * Fügt einen neuen Highscore hinzu und gibt den Rang des Spielers zurück.
      * @param name Name des Spielers
@@ -85,10 +93,7 @@ public class HighScoreAdmin {
      * @param time Benötigte Zeit in Sekunden
      * @return Rangnachricht oder Fehlermeldung
      */
-    public String addScore(String name, String level, int time) {
-        level = level.toLowerCase();
-        if (!scores.containsKey(level)) return "Invalid level!";
-
+    private String handleValidScore(String name, String level, int time) {
         String date = new Date().toString();
         HighScore newScore = new HighScore(name, date, level, time);
         List<HighScore> levelScores = scores.get(level);
@@ -97,11 +102,14 @@ public class HighScoreAdmin {
         int rank = calculateRank(levelScores, newScore);
 
         List<HighScore> sortedLevelScores = levelScores.stream()
-                .sorted(Comparator.comparingInt(s -> s.getTime()))
+                .sorted(Comparator.comparingInt(HighScore::getTime))
                 .limit(MAX_ENTRIES)
                 .toList();
 
-        return rank <= MAX_ENTRIES ? "Your rank: " + rank + "!" : "m323.tbz.ch.HighScore entries only better than " + sortedLevelScores.get(MAX_ENTRIES - 1).getTime() + " seconds";
+        return rank <= MAX_ENTRIES
+                ? "Your rank: " + rank + "!"
+                : "Highscore entries only better than "
+                + sortedLevelScores.get(MAX_ENTRIES - 1).getTime() + " seconds";
     }
 
     private int calculateRank(List<HighScore> scores, HighScore newScore) {
