@@ -24,19 +24,27 @@ public class HighScoreAdmin {
 
     public String insert(HighScore score) {
         String level = score.getLevel();
-        if (!LEVELS.contains(level)) return "Invalid level.";
+
+        // Ensure level exists
+        if (!scores.containsKey(level)) {
+            return "Ungültiges Level!";
+        }
 
         List<HighScore> list = scores.get(level);
         list.add(score);
+
+        // Sort by time (ascending)
         list.sort(Comparator.comparingInt(HighScore::getTime));
 
-        if (list.size() > MAX_ENTRIES) {
+        // Limit to top 10 entries
+        if (list.size() > 10) {
             list.remove(list.size() - 1);
         }
 
+        // Check if score is still in list after trimming
         int rank = list.indexOf(score) + 1;
-        if (rank > MAX_ENTRIES) {
-            return "HighScore entries only better than " + list.get(MAX_ENTRIES - 1).getTime() + " seconds.";
+        if (rank == 0 || rank > 10) {
+            return "HighScore entries only better than " + list.get(9).getTime() + " seconds.";
         }
 
         return "Your rank: " + rank + "!";
