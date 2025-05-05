@@ -49,8 +49,8 @@ class HighScoreAdmin {
                 .toList();
 
         return rank <= MAX_ENTRIES
-                ? "Rang: " + rank + "!"
-                : "m323.tbz.ch.HighScore entries only better than "
+                ? "Your rank: " + rank + "!"
+                : "Highscore entries only better than "
                 + sortedLevelScores.get(MAX_ENTRIES - 1).getTime() + " seconds";
     }
 
